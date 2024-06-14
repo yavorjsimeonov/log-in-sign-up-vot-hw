@@ -1,0 +1,25 @@
+[maxscale]
+threads=auto
+admin_secure_gui=false
+
+admin_host=0.0.0.0
+
+[mariadb-1]
+type=server
+address=mdb
+port=3306
+protocol=MariaDBBackend
+
+[mariadb-2]
+type=server
+address=mdb
+port=3307
+protocol=MariaDBBackend
+
+[MariaDB-Monitor]
+type=monitor
+module=mariadbmon
+servers=mariadb-1, mariadb-2
+user=maxscale
+password=123
+monitor_interval=2000

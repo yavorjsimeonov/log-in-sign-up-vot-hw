@@ -1,0 +1,85 @@
+services:
+  employees:
+    image: employees:1.0.0
+    ports:
+      - "80:80"
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    depends_on:
+      - maxscale
+
+  keycloak:
+    container_name: keycloak_keycloak
+    image: quay.io/keycloak/keycloak:22.0.3
+    environment:
+      DB: MARIADB
+      DB_URL_HOST: maxscale
+      DB_SCHEMA: keycloak
+      DB_USERNAME: keycloak
+      DB_PASSWORD: MyKeycloakMySQLPassword
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HOSTNAME_STRICT: "false"
+      KC_HTTP_RELATIVE_PATH: "/keycloak"
+      KC_PROXY: "edge"
+    ports:
+      - 8080:8080
+      - 8443:8443
+    depends_on:
+      - maxscale
+    command:
+      - "start"
+    networks:
+      - app-network
+
+  mariadb-1:
+    container_name: mariadb-1
+    image: mariadb:latest
+    volumes:
+      - ./db/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "3306:3306"
+    environment:
+      - MARIADB_ROOT_PASSWORD=1234
+      - MARIADB_CREATE_DATABASE=demo
+      - MARIADB_CREATE_USER=user:1234
+      - MARIADB_CREATE_REPLICATION_USER=replication_user:1234
+      - MARIADB_CREATE_MAXSCALE_USER=maxscale_user:1234
+    networks:
+      - app-network
+
+  mariadb-2:
+    container_name: mariadb-2
+    image: mariadb:latest
+    ports:
+      - "3307:3306"
+    environment:
+      - MARIADB_ROOT_PASSWORD=RootPassword123!
+      - MARIADB_REPLICATE_FROM=replication_user:1234@mariadb-1:3306
+    networks:
+      - app-network
+
+  maxscale:
+    container_name: maxscale
+    image: mariadb/maxscale:latest
+    ports:
+      - "4006:4006"
+      - "4008:4008"
+      - "8989:8989"
+    environment:
+      - MAXSCALE_USER=maxscale_user:1234
+      - MARIADB_HOST_1=mariadb-1 3306
+      - MARIADB_HOST_2=mariadb-2 3307
+      - SERVICE_USER=maxscale_user
+      - SERVICE_PWD=1234
+      - DB1_ADDRESS=mariadb-1
+      - DB2_ADDRESS=mariadb-2
+      - DB1_PORTS=3306
+      - DB2_PORTS=3306
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
