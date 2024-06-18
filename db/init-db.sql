@@ -1,3 +1,10 @@
+CREATE user 'maxscale'@'%' identified by '1234';
+GRANT SELECT ON mysql.user TO 'maxscale'@'%';
+GRANT SELECT ON mysql.db TO 'maxscale'@'%';
+GRANT SHOW DATABASES ON *.* TO 'maxscale'@'%';
+
+
+
 CREATE DATABASE  IF NOT EXISTS `employees_db` /*!40100 DEFAULT CHARACTER SET latin1 */;
 USE `employees_db`;
 

@@ -6,20 +6,35 @@ admin_host=0.0.0.0
 
 [mariadb-1]
 type=server
-address=mdb
+address=mariadb-1
 port=3306
 protocol=MariaDBBackend
+validationQuery="SELECT 1"
 
 [mariadb-2]
 type=server
-address=mdb
+address=mariadb-2
 port=3307
 protocol=MariaDBBackend
+validationQuery="SELECT 1"
 
-[MariaDB-Monitor]
+[mariaDB-monitor]
 type=monitor
 module=mariadbmon
 servers=mariadb-1, mariadb-2
 user=maxscale
 password=123
 monitor_interval=2000
+
+[maxscale-service]
+type=service
+router=readwritesplit
+servers=server1,server2
+user=maxscale
+password=1234
+
+[maxscale-listener]
+type=listener
+service=Maxscale
+protocol=MariaDBClient
+port=4006

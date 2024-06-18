@@ -1,6 +1,5 @@
 package com.tues.employees.config;
 
-//import com.tues.employees.controllers.KeycloakLogoutHandler;
 import com.tues.employees.controller.KeycloakLogoutHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -1,5 +1,6 @@
 services:
   employees:
+    container_name: employees
     image: employees:1.0.0
     ports:
       - "80:80"
@@ -8,6 +9,8 @@ services:
       dockerfile: ./Dockerfile
     depends_on:
       - maxscale
+    networks:
+      - app-network
 
   keycloak:
     container_name: keycloak_keycloak
@@ -42,6 +45,7 @@ services:
       - "3306:3306"
     environment:
       - MARIADB_ROOT_PASSWORD=1234
+      - MARIADB_ROOT_HOSTS=%
       - MARIADB_CREATE_DATABASE=demo
       - MARIADB_CREATE_USER=user:1234
       - MARIADB_CREATE_REPLICATION_USER=replication_user:1234
@@ -55,7 +59,7 @@ services:
     ports:
       - "3307:3306"
     environment:
-      - MARIADB_ROOT_PASSWORD=RootPassword123!
+      - MARIADB_ROOT_PASSWORD=1234
       - MARIADB_REPLICATE_FROM=replication_user:1234@mariadb-1:3306
     networks:
       - app-network
@@ -64,21 +68,27 @@ services:
     container_name: maxscale
     image: mariadb/maxscale:latest
     ports:
+      - "4000:4000"
       - "4006:4006"
       - "4008:4008"
       - "8989:8989"
+    volumes:
+      - ./src/main/resources/maxscale.cnf:/etc/maxscale.cnf.d/maxscale.cnf
     environment:
-      - MAXSCALE_USER=maxscale_user:1234
-      - MARIADB_HOST_1=mariadb-1 3306
-      - MARIADB_HOST_2=mariadb-2 3307
-      - SERVICE_USER=maxscale_user
+#      - MAXSCALE_USER=maxscale_user:1234
+#      - MARIADB_HOST_1=mariadb-1 3306
+#      - MARIADB_HOST_2=mariadb-2 3307
+      - SERVICE_USER=maxscale
       - SERVICE_PWD=1234
       - DB1_ADDRESS=mariadb-1
       - DB2_ADDRESS=mariadb-2
       - DB1_PORTS=3306
-      - DB2_PORTS=3306
+      - DB2_PORTS=3307
     networks:
       - app-network
+    depends_on:
+      - mariadb-1
+      - mariadb-2
 
 networks:
   app-network:
